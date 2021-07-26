@@ -1,14 +1,10 @@
-from flask import Flask, request, json, Response, render_template
-from flask_sqlalchemy import SQLAlchemy
+from flask import request, json, Response, render_template
 from sqlalchemy.exc import SQLAlchemyError
-import jwt
-from time import time
-import os
 from __init__ import create_app
 from __init__ import db
+from models import LoginModel, ResetModel
 
 app = create_app()
-
 
 from mail_sender import send_email
 
@@ -16,49 +12,6 @@ def send_result(response=None, error='', status=200):
     if response is None: response = {}
     result = json.dumps({'result': response, 'error': error})
     return Response(status=status, mimetype="application/json", response=result)
-
-
-class LoginModel(db.Model):
-    __tablename__ = 'login'
-
-    email = db.Column(db.String(), primary_key=True)
-    name = db.Column(db.String())
-    phone = db.Column(db.String())
-    password = db.Column(db.String())
-
-    def __init__(self, email, name, phone, password=None):
-        self.name = name
-        self.email = email
-        self.phone = phone
-        self.password = password
-
-    def get_reset_token(self, expires=500):
-        return jwt.encode({'reset_password': self.email, 'exp': time() + expires},
-                           key=os.getenv('SECRET_KEY_FLASK'))
-
-    @staticmethod
-    def verify_reset_token(token):
-        try:
-            email = jwt.decode(token, key=os.getenv('SECRET_KEY_FLASK'))['reset_password']
-            print(email)
-        except Exception as e:
-            print(e)
-            return
-        return LoginModel.query.filter_by(email=email).first()
-
-    @property
-    def serialize(self):
-        return {
-            'name': self.name,
-            'email': self.email,
-            'phone': self.phone
-            # don't need to send password
-            # 'password': self.password
-        }
-
-    def __repr__(self):
-        return f"<Login {self.name}>"
-
 
 @app.route('/')
 def hello():
@@ -99,10 +52,15 @@ def login():
 # Send password reset email
 @app.route('/recovery', methods=['POST'])
 def reset():
-    email = request.form.get('email')    
+    data = request.get_json()
+    email = data['email'] 
     user = LoginModel.query.filter_by(email=email).first()
     if user:
-        send_email(user)
+        token = user.get_reset_token()
+        reset_entry = ResetModel(email, token)
+        db.session.add(reset_entry)
+        send_email(user, token)
+        db.session.commit()
         return send_result(response='Request processed successfully', status=201)
 
     return send_result(error='No account found with that email', status=401)
@@ -112,14 +70,17 @@ def reset():
 def reset_verified(token):
 
     user = LoginModel.verify_reset_token(token)
-    if not user:
-        print('no user found')
+    # Check if a reset_password table has a token against this email, otherwise password has already been reset
+    reset_entry = ResetModel.query.filter_by(email=user.email).first()
+    if not user or not reset_entry:
         return render_template('invalid_session.html')
 
     password = request.form.get('password')
     if password:
         user.set_password(password, commit=True)
-
+        # make sure the link doesn't work after reseting password by removing the token entry from reset_password table
+        ResetModel.query.filter(ResetModel.email == user.email).delete()
+        db.session.commit()
         return render_template('reset_success.html')
 
     return render_template('reset_verified.html')

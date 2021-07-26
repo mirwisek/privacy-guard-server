@@ -1,6 +1,5 @@
+<h4>Dear {{ user.name }},</h4>
 <p>
-    To reset your password
-    <a href="{{ url_for('app_routes.reset_verified', user=user, token=token, _external=True) }}">
-        click here
-    </a>.
+    You have requested to recover your account. To reset your password
+    <a href="{{ url_for('reset_verified', user=user, token=token, _external=True) }}">click here</a>.
 </p>

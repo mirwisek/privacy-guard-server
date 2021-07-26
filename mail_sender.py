@@ -4,13 +4,10 @@ import os
 from flask import  render_template
 
 
-def send_email(user):
-
-    token = user.get_reset_token()
-
+def send_email(user, token):
     msg = Message()
-    msg.subject = "Privacy Guard Password Reset"
-    msg.sender = os.getenv('MAIL_USERNAME')
+    msg.subject = "Privacy Guard - Account Recovery"
+    msg.sender = "Privacy Guard <noreply@privacy-guard.com>"
     msg.recipients = [user.email]
     msg.html = render_template('reset_email.html', user=user, token=token)
 

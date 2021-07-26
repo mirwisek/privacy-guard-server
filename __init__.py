@@ -6,6 +6,8 @@ import os
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
+os.environ['SECRET_KEY'] = 'privacy-guard'
+
 class Configuration:
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -13,9 +15,10 @@ class Configuration:
     MAIL_SERVER = 'smtp.gmail.com'
     MAIL_PORT = 465
     MAIL_USE_SSL = True
-    MAIL_USERNAME = os.getenv('MAIL_USERNAME')
-    MAIL_PASSWORD = os.getenv('MAIL_PASSWORD')
-    SECRET_KEY = 'secretkey'
+    MAIL_USERNAME = "mirwise001@gmail.com"
+    MAIL_PASSWORD = "googlE@1135"
+    SECRET_KEY = os.getenv('SECRET_KEY')
+
 
 db = SQLAlchemy()
 jwt = JWTManager()
