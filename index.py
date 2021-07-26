@@ -20,24 +20,22 @@ def hello():
 
 @app.route('/signup', methods=['POST'])
 def signup():
-    if request.is_json:
-        data = request.get_json()
-        try:
-            new_user = LoginModel(email=data['email'], name=data['name'], phone=data['phone'], password=data['password'])
-            db.session.add(new_user)
-            db.session.commit()
-            return send_result(response='User registered successfully', status=201)
-        except KeyError:
-            return send_result(error='Email,phone,password are required', status=422)
-        except SQLAlchemyError as e:
-            return send_result(error="Couldn't register user, possibly because user already exists", status=202)
-    else:
-        return send_result(error='The request payload is not in JSON format', status=422)
+    data = request.form
+    try:
+        new_user = LoginModel(email=data['email'], name=data['name'], phone=data['phone'], password=data['password'])
+        db.session.add(new_user)
+        db.session.commit()
+        return send_result(response='User registered successfully', status=201)
+    except KeyError:
+        return send_result(error='Email,phone,password are required', status=422)
+    except SQLAlchemyError as e:
+        return send_result(error="Couldn't register user, possibly because user already exists", status=202)    
+    # return send_result(error='The request payload is not in JSON format', status=422)
 
 
 @app.route('/login', methods=['POST'])
 def login():
-    data = request.get_json()
+    data = request.form
     try:
         email = data['email']
         password = data['password']
@@ -52,7 +50,7 @@ def login():
 # Send password reset email
 @app.route('/recovery', methods=['POST'])
 def reset():
-    data = request.get_json()
+    data = request.form
     email = data['email'] 
     user = LoginModel.query.filter_by(email=email).first()
     if user:
