@@ -58,7 +58,8 @@ def reset():
     if user:
         token = user.get_reset_token()
         reset_entry = ResetModel(email, token)
-        db.session.add(reset_entry)
+        # update entry to avoid duplicate primary key error
+        db.session.merge(reset_entry)
         send_email(user, token)
         db.session.commit()
         return send_result(response='Request processed successfully', status=201)
@@ -70,16 +71,19 @@ def reset():
 def reset_verified(token):
 
     user = LoginModel.verify_reset_token(token)
-    # Check if a reset_password table has a token against this email, otherwise password has already been reset
-    reset_entry = ResetModel.query.filter_by(email=user.email).first()
-    if not user or not reset_entry:
+    if not user:
+        return render_template('invalid_session.html')
+
+     # Check if a reset_password table has a token against this email, otherwise password has already been reset
+    reset_entry = ResetModel.query.filter_by(token=token).first()
+    if not reset_entry:
         return render_template('invalid_session.html')
 
     password = request.form.get('password')
     if password:
         user.set_password(password, commit=True)
         # make sure the link doesn't work after reseting password by removing the token entry from reset_password table
-        ResetModel.query.filter(ResetModel.email == user.email).delete()
+        ResetModel.query.filter(ResetModel.token == token).delete()
         db.session.commit()
         return render_template('reset_success.html')
 

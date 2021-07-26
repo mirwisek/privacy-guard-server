@@ -1,8 +1,29 @@
 <!doctype html>
-<title>{% block title %}{% endblock %} - Flask Password Reset</title>
-<section class="content">
-  <header>
-    {% block header %}{% endblock %}
-  </header>
-  {% block content %}{% endblock %}
-</section>
+<title>Privacy Guard - Account Recovery</title>
+<style>
+#app-title {
+  color: rgb(76, 0, 255);
+  font-weight: bold;
+  text-align: center;
+}
+.center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+#logo {
+  width: 80px;
+  border-radius: 50%;
+}
+</style>
+<body>
+  <img class="center" id="logo" src="../static/logo.png" />
+  <h2 id="app-title">Privacy Guard</h2>
+  <section class="content center">
+    <header>
+      {% block header %}{% endblock %}
+    </header>
+    {% block content %}{% endblock %}
+  </section>
+</body>

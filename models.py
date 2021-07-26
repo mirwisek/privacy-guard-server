@@ -37,7 +37,6 @@ class LoginModel(db.Model):
             db.session.commit()
 
     def get_reset_token(self, expires=500):
-        print('reset code is {}'.format(os.getenv('SECRET_KEY')))
         return jwt.encode({'reset_password': self.email, 'exp': time() + expires},
                            key=os.getenv('SECRET_KEY'))
 
