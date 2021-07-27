@@ -15,8 +15,8 @@ class Configuration:
     MAIL_SERVER = 'smtp.gmail.com'
     MAIL_PORT = 465
     MAIL_USE_SSL = True
-    MAIL_USERNAME = "mirwise001@gmail.com"
-    MAIL_PASSWORD = "googlE@1135"
+    MAIL_USERNAME = "43188a@gmail.com"
+    MAIL_PASSWORD = "03108160246"
     SECRET_KEY = os.getenv('SECRET_KEY')
 
 
