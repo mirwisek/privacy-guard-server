@@ -65,7 +65,7 @@ def reset():
         db.session.commit()
         return send_result(response='Request processed successfully', status=201)
 
-    return send_result(error='No account found with that email', status=401)
+    return send_result(error='No account found with that email', response='', status=401)
 
 
 @app.route('/recovery_verified/<token>', methods=['GET', 'POST'])
