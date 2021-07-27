@@ -1,8 +1,9 @@
 from flask import request, json, Response, render_template
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import exc
 from __init__ import create_app
 from __init__ import db
 from models import LoginModel, ResetModel
+import socket
 
 app = create_app()
 
@@ -27,9 +28,11 @@ def signup():
         db.session.commit()
         return send_result(response='User registered successfully', status=201)
     except KeyError:
-        return send_result(error='Email,phone,password are required', status=422)
-    except SQLAlchemyError as e:
-        return send_result(error="Couldn't register user, possibly because user already exists", status=202)    
+        # Send response as String and not as default dict, for consistensy at android side
+        return send_result(error='Email,phone,password are required', response='', status=422)
+    except exc.IntegrityError as e:
+        db.session.rollback()
+        return send_result(error="Couldn't register user, possibly because user already exists", response='', status=202)    
     # return send_result(error='The request payload is not in JSON format', status=422)
 
 
@@ -89,4 +92,11 @@ def reset_verified(token):
 
 
 if __name__ == '__main__':
-    app.run()
+    # Print ip address of PC
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.connect(("8.8.8.8", 80))
+    print('Your IP Address for this PC is: {}'.format(s.getsockname()[0]))
+    s.close()
+    
+    app.run(host='0.0.0.0', port=5000, debug=False)
+    
